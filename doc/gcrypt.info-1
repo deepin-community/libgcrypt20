@@ -1,7 +1,7 @@
-This is gcrypt.info, produced by makeinfo version 6.5 from gcrypt.texi.
+This is gcrypt.info, produced by makeinfo version 6.8 from gcrypt.texi.
 
-This manual is for Libgcrypt version 1.10.1 and was last updated 28
-March 2022.  Libgcrypt is GNU's library of cryptographic building
+This manual is for Libgcrypt version 1.10.3 and was last updated 19
+October 2023.  Libgcrypt is GNU's library of cryptographic building
 blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
@@ -25,8 +25,8 @@ File: gcrypt.info,  Node: Top,  Next: Introduction,  Up: (dir)
 The Libgcrypt Library
 *********************
 
-This manual is for Libgcrypt version 1.10.1 and was last updated 28
-March 2022.  Libgcrypt is GNU's library of cryptographic building
+This manual is for Libgcrypt version 1.10.3 and was last updated 19
+October 2023.  Libgcrypt is GNU's library of cryptographic building
 blocks.
 
 Copyright (C) 2000, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011, 2012
@@ -213,34 +213,34 @@ which the header file is located to the compilers include file search
 path (via the '-I' option).
 
    However, the path to the include file is determined at the time the
-source is configured.  To solve this problem, Libgcrypt ships with a
-small helper program 'libgcrypt-config' that knows the path to the
-include file and other configuration options.  The options that need to
-be added to the compiler invocation at compile time are output by the
-'--cflags' option to 'libgcrypt-config'.  The following example shows
-how it can be used at the command line:
+source is configured.  To solve this problem, Libgcrypt ships with
+'libgcrypt.pc' file, that knows about the path to the include file and
+other configuration options.  The options that need to be added to the
+compiler invocation at compile time are output by the '--cflags' option
+to 'pkg-config libgcrypt'.  The following example shows how it can be
+used at the command line:
 
-     gcc -c foo.c `libgcrypt-config --cflags`
+     gcc -c foo.c `pkg-config --cflags libgcrypt`
 
-   Adding the output of 'libgcrypt-config --cflags' to the compiler's
-command line will ensure that the compiler can find the Libgcrypt header
-file.
+   Adding the output of 'pkg-config --cflags libgcrypt' to the
+compiler's command line will ensure that the compiler can find the
+Libgcrypt header file.
 
    A similar problem occurs when linking the program with the library.
 Again, the compiler has to find the library files.  For this to work,
 the path to the library files has to be added to the library search path
-(via the '-L' option).  For this, the option '--libs' to
-'libgcrypt-config' can be used.  For convenience, this option also
-outputs all other options that are required to link the program with the
-Libgcrypt libraries (in particular, the '-lgcrypt' option).  The example
-shows how to link 'foo.o' with the Libgcrypt library to a program 'foo'.
+(via the '-L' option).  For this, the option '--libs' to 'pkg-config
+libgcrypt' can be used.  For convenience, this option also outputs all
+other options that are required to link the program with the Libgcrypt
+libraries (in particular, the '-lgcrypt' option).  The example shows how
+to link 'foo.o' with the Libgcrypt library to a program 'foo'.
 
-     gcc -o foo foo.o `libgcrypt-config --libs`
+     gcc -o foo foo.o `pkg-config --libs libgcrypt`
 
    Of course you can also combine both examples to a single command by
-specifying both options to 'libgcrypt-config':
+specifying both options to 'pkg-config libgcrypt':
 
-     gcc -o foo foo.c `libgcrypt-config --cflags --libs`
+     gcc -o foo foo.c `pkg-config --cflags --libs libgcrypt`
 
 
 File: gcrypt.info,  Node: Building sources using Automake,  Next: Initializing the library,  Prev: Building sources,  Up: Preparation
@@ -250,7 +250,9 @@ File: gcrypt.info,  Node: Building sources using Automake,  Next: Initializing t
 
 It is much easier if you use GNU Automake instead of writing your own
 Makefiles.  If you do that, you do not have to worry about finding and
-invoking the 'libgcrypt-config' script at all.  Libgcrypt provides an
+invoking the 'pkg-config' script at all.
+
+   You can use 'PKG_CHECK_MODULES' macro, or, libgcrypt also provides an
 extension to Automake that does all the work for you.
 
  -- Macro: AM_PATH_LIBGCRYPT ([MINIMUM-VERSION], [ACTION-IF-FOUND],
@@ -262,19 +264,9 @@ extension to Automake that does all the work for you.
      Additionally, the function defines 'LIBGCRYPT_CFLAGS' to the flags
      needed for compilation of the program to find the 'gcrypt.h' header
      file, and 'LIBGCRYPT_LIBS' to the linker flags needed to link the
-     program to the Libgcrypt library.  If the used helper script does
-     not match the target type you are building for, a warning is
-     printed and the string 'libgcrypt' is appended to the variable
-     'gpg_config_script_warn'.
+     program to the Libgcrypt library.
 
-     This macro searches for 'libgcrypt-config' along the PATH. If you
-     are cross-compiling, it is useful to set the environment variable
-     'SYSROOT' to the top directory of your target.  The macro will then
-     first look for the helper program in the 'bin' directory below that
-     top directory.  An absolute directory name must be used for
-     'SYSROOT'.  Finally, if the configure command line option
-     '--with-libgcrypt-prefix' is used, only its value is used for the
-     top directory below which the helper script is expected.
+     This macro locates for 'libgcrypt.pc', with cross-compile support.
 
    You can use the defined Autoconf variables like this in your
 'Makefile.am':
@@ -920,6 +912,69 @@ File: gcrypt.info,  Node: Controlling the library,  Next: Error Handling,  Up: G
           140-3 certification.  If the KDF is approved, this function
           returns 'GPG_ERR_NO_ERROR'.  Otherwise 'GPG_ERR_NOT_SUPPORTED'
           is returned.
+
+     'GCRYCTL_FIPS_SERVICE_INDICATOR_FUNCTION; Arguments: const char *'
+
+          Check if the given function is approved under the current FIPS
+          140-3 certification.  If the function is approved, this
+          function returns 'GPG_ERR_NO_ERROR' (other restrictions might
+          still apply).  Otherwise 'GPG_ERR_NOT_SUPPORTED' is returned.
+
+     'GCRYCTL_FIPS_SERVICE_INDICATOR_MAC; Arguments: enum gcry_mac_algos'
+
+          Check if the given MAC is approved under the current FIPS
+          140-3 certification.  If the MAC is approved, this function
+          returns 'GPG_ERR_NO_ERROR'.  Otherwise 'GPG_ERR_NOT_SUPPORTED'
+          is returned.
+
+     'GCRYCTL_FIPS_SERVICE_INDICATOR_MD; Arguments: enum gcry_md_algos'
+
+          Check if the given message digest algorithm is approved under
+          the current FIPS 140-3 certification.  If the algorithm is
+          approved, this function returns 'GPG_ERR_NO_ERROR'.  Otherwise
+          'GPG_ERR_NOT_SUPPORTED' is returned.
+
+     'GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS; Arguments: const char *'
+
+          Check if the given public key operation flag or s-expression
+          object name is approved under the current FIPS 140-3
+          certification.  If the flag is approved, this function returns
+          'GPG_ERR_NO_ERROR'.
+
+          Otherwise 'GPG_ERR_NOT_SUPPORTED' is returned.
+
+          For compound s-expression objects, if the object name is
+          allowed, the user is responsible to check also the internal
+          members.  For example:
+
+                 gcry_sexp_t s_sig = NULL;
+                 gcry_md_hd_t hd = NULL;
+                 gcry_sexp_t s_sk = NULL;
+                 const char *data_tmpl = "(data(flags pss)(hash %s %b)(salt-length 1:0))";
+
+                 if (err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_FUNCTION, "gcry_md_open") &&
+                     err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_MD, GCRY_MD_SHA512) &&
+                     err = gcry_md_open (&hd, GCRY_MD_SHA512, 0))
+                   {
+                     printf ("gcry_md_open failed: %s", gpg_strerror (err));
+                     return;
+                   }
+                 gcry_md_write (hd, buffer, buflen);
+
+                 /* initialize the key in s_sk */
+
+                 if (err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_FUNCTION, "gcry_pk_hash_sign") &&
+                     err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS, "data") &&
+                     err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS, "flags") &&
+                     err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS, "pss") &&
+                     err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS, "hash") &&
+                     err = gcry_control(GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS, "salt-length")
+                     err = gcry_pk_hash_sign (&s_sig, data_tmpl, s_sk, hd, NULL))
+                   {
+                     printf ("gcry_pk_hash_sign failed: %s", gpg_strerror (err));
+                     return;
+                   }
+                 /* ok */
 
 
 File: gcrypt.info,  Node: Error Handling,  Prev: Controlling the library,  Up: Generalities
@@ -1945,6 +2000,22 @@ directly but there is nothing which would inhibit it:
      context handle H.  Please see the comments in the source code
      ('src/global.c') for details.
 
+'GCRYCTL_SET_ALLOW_WEAK_KEY:'
+
+     This may be used to allow use of weak keys for certain block
+     ciphers.  BUFFER must be given as 'NULL'.  To allow weak keys for a
+     cipher context H, set BUFLEN to '1'.  To disallow weak keys, set
+     BUFLEN to '0'.
+
+     Default setting for a cipher context is to disallow weak keys.
+
+     Note that even if weak keys are allowed, 'gcry_cipher_setkey' will
+     return error code 'GPG_ERR_WEAK_KEY' if a weak key is detected.
+     However, the cipher context is configured with the weak key and can
+     proceed with encryption/decryption.  When weak keys are disallowed,
+     error code 'GPG_ERR_WEAK_KEY' is returned and the cipher context is
+     cannot be used for encryption/decryption.
+
  -- Function: gcry_error_t gcry_cipher_info (gcry_cipher_hd_t H, int
           WHAT, void *BUFFER, size_t *NBYTES)
 
@@ -2461,8 +2532,7 @@ known:
      Force the use of the ANSI X9.31 key generation algorithm instead of
      the default algorithm.  This flag is only meaningful for RSA key
      generation and usually not required.  Note that this algorithm is
-     implicitly used if either 'derive-parms' is given or Libgcrypt is
-     in FIPS mode.
+     implicitly used if either 'derive-parms' is given.
 
 'use-fips186'
      Force the use of the FIPS 186 key generation algorithm instead of
@@ -2979,9 +3049,8 @@ Libgcrypt also provides a function to generate public key pairs:
           the given parameters.
 
           If given for an RSA key, the X9.31 key generation algorithm is
-          used even if libgcrypt is not in FIPS mode.  If given for a
-          DSA key, the FIPS 186 algorithm is used even if libgcrypt is
-          not in FIPS mode.
+          used.  If given for a DSA key, the FIPS 186 algorithm is used
+          even if libgcrypt is not in FIPS mode.
 
                (genkey
                  (rsa
@@ -3006,6 +3075,36 @@ Libgcrypt also provides a function to generate public key pairs:
                    (nbits 4:1024)
                    (derive-parms
                      (seed SEED-MPI))))
+
+     'test-parms LIST'
+          This is currently only implemented for RSA keys.  If given,
+          the libgcrypt will not generate parameter, but tests whether
+          the p,q is probably prime.  Returns key with zeroes.
+
+          The FIPS key generation algorithm is used even if libgcrypt is
+          not in FIPS mode.
+
+               (genkey
+                 (rsa
+                   (nbits 4:1024)
+                   (rsa-use-e 1:3)
+                   (test-parms
+                     (e 5:65537)
+                     (p #00bbccabcee15d343944a47e492d4b1f4de79633e2
+                         0cbb46f7d2d6813392a807ad048cf77528edd19f77
+                         e7453f25173b9dcb70423afa2037aae147b81a33d5
+                         41fc58f875eff1e852ab55e2e09a3debfbc151b3b0
+                         d17fef6f74d81fca14fbae531418e211ef818592af
+                         70de5cec3b92795cc3578572bf456099cd8727150e
+                         523261#)
+                     (q #00ca87ecf2883f4ed00a9ec65abdeba81d28edbfcc
+                         34ecc563d587f166b52d42bfbe22bbc095b0b8426a
+                         2f8bbc55baaa8859b42cbc376ed3067db3ef7b135b
+                         63481322911ebbd7014db83aa051e0ca2dbf302b75
+                         cd37f2ae8df90e134226e92f6353a284b28bb30af0
+                         bbf925b345b955328379866ebac11d55bc80fe84f1
+                         05d415#)
+
 
      'flags FLAGLIST'
           This is preferred way to define flags.  FLAGLIST may contain
@@ -4627,7 +4726,8 @@ representation of an MPI and the internal one of Libgcrypt.
           Simple unsigned integer.
 
      Note that all of the above formats store the integer in big-endian
-     format (MSB first).
+     format (MSB first).  Leading zeroes are stripped unless they are
+     required to keep a value positive.
 
  -- Function: gcry_error_t gcry_mpi_print (enum gcry_mpi_format FORMAT,
           unsigned char *BUFFER, size_t BUFLEN, size_t *NWRITTEN,
@@ -5426,6 +5526,7 @@ tarballs should be used.  These tarballs are available from several
 places with the master copy at 'ftp://ftp.gnupg.org/gcrypt/libgcrypt/'.
 Announcements of new releases are posted to the
 'gnupg-announce@gnupg.org' mailing list(2).
+
 
      [image src="libgcrypt-modules.png" alt="Libgcrypt subsystems" ]
 
@@ -6275,9 +6376,11 @@ The FIPS mode of Libgcrypt implements a finite state machine (FSM) using
 only valid transitions (*note Table B.2: tbl:fips-state-transitions.)
 may happen.
 
+
             [image src="fips-fsm.png" alt="FIPS FSM Diagram" ]
 
 Figure B.1: FIPS mode state diagram
+
 
 States used by the FIPS FSM:
 
@@ -6317,6 +6420,7 @@ Shutdown
      The application may at this point still run cleanup handlers.
 
 Table B.1: FIPS mode states
+
 
 The valid state transitions (*note Figure B.1: fig:fips-fsm.) are:
 '1'

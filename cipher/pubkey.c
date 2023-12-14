@@ -462,9 +462,10 @@ _gcry_pk_sign_md (gcry_sexp_t *r_sig, const char *tmpl, gcry_md_hd_t hd_orig,
   gcry_sexp_t s_hash = NULL;
   int algo;
   const unsigned char *digest;
+  int digest_size;
   gcry_error_t err;
   gcry_md_hd_t hd;
-  char *s;
+  const char *s;
   char *hash_name;
 
   *r_sig = NULL;
@@ -479,7 +480,7 @@ _gcry_pk_sign_md (gcry_sexp_t *r_sig, const char *tmpl, gcry_md_hd_t hd_orig,
     hash_name = NULL;
   else
     {
-      char *p;
+      const char *p;
 
       for (p = s; *p && *p != ' '; p++)
 	;
@@ -501,7 +502,9 @@ _gcry_pk_sign_md (gcry_sexp_t *r_sig, const char *tmpl, gcry_md_hd_t hd_orig,
   if (hash_name)
     {
       algo = _gcry_md_map_name (hash_name);
-      if (algo == 0
+      digest_size = (int) _gcry_md_get_algo_dlen (algo);
+
+      if (algo == 0 || digest_size == 0
           || (fips_mode () && algo == GCRY_MD_SHA1))
 	{
 	  xfree (hash_name);
@@ -514,8 +517,9 @@ _gcry_pk_sign_md (gcry_sexp_t *r_sig, const char *tmpl, gcry_md_hd_t hd_orig,
   else
     {
       algo = _gcry_md_get_algo (hd);
+      digest_size = (int) _gcry_md_get_algo_dlen (algo);
 
-      if (fips_mode () && algo == GCRY_MD_SHA1)
+      if (digest_size == 0 || (fips_mode () && algo == GCRY_MD_SHA1))
         {
           _gcry_md_close (hd);
           return GPG_ERR_DIGEST_ALGO;
@@ -535,13 +539,11 @@ _gcry_pk_sign_md (gcry_sexp_t *r_sig, const char *tmpl, gcry_md_hd_t hd_orig,
     {
       if (hash_name)
 	rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
-			       (int) _gcry_md_get_algo_dlen (algo),
-			       digest);
+			       digest_size, digest);
       else
 	rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
 			       _gcry_md_algo_name (algo),
-			       (int) _gcry_md_get_algo_dlen (algo),
-			       digest);
+			       digest_size, digest);
     }
   else
     {
@@ -557,14 +559,12 @@ _gcry_pk_sign_md (gcry_sexp_t *r_sig, const char *tmpl, gcry_md_hd_t hd_orig,
 
       if (hash_name)
 	rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
-			       (int) _gcry_md_get_algo_dlen (algo),
-			       digest,
+			       digest_size, digest,
 			       (int) len, p);
       else
 	rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
 			       _gcry_md_algo_name (algo),
-			       (int) _gcry_md_get_algo_dlen (algo),
-			       digest,
+			       digest_size, digest,
 			       (int) len, p);
     }
 
@@ -636,30 +636,87 @@ _gcry_pk_verify_md (gcry_sexp_t s_sig, const char *tmpl, gcry_md_hd_t hd_orig,
   gcry_sexp_t s_hash = NULL;
   int algo;
   const unsigned char *digest;
+  int digest_size;
   gcry_error_t err;
   gcry_md_hd_t hd;
+  const char *s;
+  char *hash_name;
+
+  /* Check if it has fixed hash name or %s */
+  s = strstr (tmpl, "(hash ");
+  if (s == NULL)
+    return GPG_ERR_DIGEST_ALGO;
+
+  s += 6;
+  if (!strncmp (s, "%s", 2))
+    hash_name = NULL;
+  else
+    {
+      const char *p;
+
+      for (p = s; *p && *p != ' '; p++)
+        ;
+
+      hash_name = xtrymalloc (p - s + 1);
+      if (!hash_name)
+        return gpg_error_from_syserror ();
+      memcpy (hash_name, s, p - s);
+      hash_name[p - s] = 0;
+    }
 
   err = _gcry_md_copy (&hd, hd_orig);
   if (err)
-    return gpg_err_code (err);
+    {
+      xfree (hash_name);
+      return gpg_err_code (err);
+    }
 
-  algo = _gcry_md_get_algo (hd);
+  if (hash_name)
+    {
+      algo = _gcry_md_map_name (hash_name);
+      digest_size = (int) _gcry_md_get_algo_dlen (algo);
 
-  if (fips_mode () && algo == GCRY_MD_SHA1)
-    return GPG_ERR_DIGEST_ALGO;
+      if (algo == 0 || digest_size == 0
+          || (fips_mode () && algo == GCRY_MD_SHA1))
+        {
+          xfree (hash_name);
+          _gcry_md_close (hd);
+          return GPG_ERR_DIGEST_ALGO;
+        }
 
-  digest = _gcry_md_read (hd, 0);
+      digest = _gcry_md_read (hd, algo);
+    }
+  else
+    {
+      algo = _gcry_md_get_algo (hd);
+      digest_size = (int) _gcry_md_get_algo_dlen (algo);
+
+      if (digest_size == 0 || (fips_mode () && algo == GCRY_MD_SHA1))
+        {
+          _gcry_md_close (hd);
+          return GPG_ERR_DIGEST_ALGO;
+        }
+
+      digest = _gcry_md_read (hd, 0);
+    }
+
   if (!digest)
     {
+      xfree (hash_name);
       _gcry_md_close (hd);
       return GPG_ERR_DIGEST_ALGO;
     }
 
   if (!ctx)
-    rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
-                           _gcry_md_algo_name (algo),
-                           (int) _gcry_md_get_algo_dlen (algo),
-                           digest);
+    {
+      if (hash_name)
+        rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
+                               digest_size, digest);
+      else
+        rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
+                               _gcry_md_algo_name (algo),
+                               digest_size, digest);
+    }
   else
     {
       const unsigned char *p;
@@ -672,13 +729,18 @@ _gcry_pk_verify_md (gcry_sexp_t s_sig, const char *tmpl, gcry_md_hd_t hd_orig,
           return rc;
         }
 
-      rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
-                             _gcry_md_algo_name (algo),
-                             (int) _gcry_md_get_algo_dlen (algo),
-                             digest,
-                             (int) len, p);
+      if (hash_name)
+        rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
+                               digest_size, digest,
+                               (int) len, p);
+      else
+        rc = _gcry_sexp_build (&s_hash, NULL, tmpl,
+                               _gcry_md_algo_name (algo),
+                               digest_size, digest,
+                               (int) len, p);
     }
 
+  xfree (hash_name);
   _gcry_md_close (hd);
   if (rc)
     return rc;
@@ -1213,7 +1275,7 @@ _gcry_pk_selftest (int algo, int extended, selftest_report_func_t report)
 
 struct pk_random_override {
   size_t len;
-  unsigned char area[];
+  unsigned char area[1];  /* In future, we may use flexible array member.  */
 };
 
 gpg_err_code_t
@@ -1228,7 +1290,8 @@ _gcry_pk_random_override_new (gcry_ctx_t *r_ctx,
     return GPG_ERR_EINVAL;
 
   ctx = _gcry_ctx_alloc (CONTEXT_TYPE_RANDOM_OVERRIDE,
-                         sizeof (size_t) + len, NULL);
+                         offsetof (struct pk_random_override, area) + len,
+                         NULL);
   if (!ctx)
     return gpg_err_code_from_syserror ();
   pro = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_RANDOM_OVERRIDE);

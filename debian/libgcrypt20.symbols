@@ -10,7 +10,7 @@ libgcrypt.so.20 libgcrypt20 #MINVER#
  gcry_cipher_authenticate@GCRYPT_1.6 1.10.0
  gcry_cipher_checktag@GCRYPT_1.6 1.10.0
  gcry_cipher_close@GCRYPT_1.6 1.10.0
- gcry_cipher_ctl@GCRYPT_1.6 1.10.0
+ gcry_cipher_ctl@GCRYPT_1.6 1.10.3
  gcry_cipher_decrypt@GCRYPT_1.6 1.10.0
  gcry_cipher_encrypt@GCRYPT_1.6 1.10.0
  gcry_cipher_get_algo_blklen@GCRYPT_1.6 1.10.0
