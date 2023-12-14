@@ -1,3 +1,784 @@
+2023-11-14  Werner Koch  <wk@gnupg.org>
+
+	Release 1.10.3.
+	+ commit aa1610866f8e42bdc272584f0a717f32ee050a22
+
+
+2023-11-07  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	mpih_mod: avoid unintentional conditional branch.
+	+ commit 11973c2219da0f732338cf080a4edeb6a89c313e
+	* mpi/mpih-const-time.c (_gcry_mpih_mod): Avoid conditional branch
+	on the_bit extraction.
+
+	mpih-const-time: use constant-time comparisons conditional add/sub/abs.
+	+ commit 74588de441fd98f6dd99132e67e0c2632cb2a6bd
+	* mpi/mpih-const-time.c (mpih_ct_limb_greater_than)
+	(mpih_ct_limb_less_than): New.
+	(_gcry_mpih_add_n_cond, _gcry_mpih_sub_n_cond, _gcry_mpih_abs_cond): Use
+	mpih_ct_limb_greater_than and mpih_ct_limb_less_than for comparisons.
+
+	const-time: add functions for generating masks from 0/1 input.
+	+ commit 01e7052cb245619280769f683d697d6b2f68e041
+	* mpi/ec-nist.c (_gcry_mpi_ec_nist192_mod, _gcry_mpi_ec_nist224_mod)
+	(_gcry_mpi_ec_nist256_mod, _gcry_mpi_ec_nist384_mod): Use mask
+	generating functions.
+	* mpi/mpi-internal.h (ct_limb_gen_mask, ct_limb_gen_inv_mask): New.
+	* mpi/mpih-const-time.c (_gcry_mpih_set_cond, _gcry_mpih_add_n_cond)
+	(_gcry_mpih_sub_n_cond, _gcry_mpih_sub_n_cond, _gcry_mpih_swap_cond):
+	Use mask generating functions.
+	* mpi/mpiutil.c (_gcry_mpi_set_cond, _gcry_mpi_swap_cond): Use mask
+	generating functions.
+	* src/const-time.h (DEFINE_CT_TYPE_GEN_MASK, ct_uintptr_gen_mask)
+	(ct_ulong_gen_mask, DEFINE_CT_TYPE_GEN_INV_MASK)
+	(ct_uintptr_gen_inv_mask, ct_ulong_gen_inv_mask): New.
+	(DEFINE_CT_TYPE_SELECT_FUNC): Use mask generating functions.
+	* src/const-time.c (_gcry_ct_memmov_cond): Use mask generating
+	functions.
+
+	ec: avoid unintentional condition branches for 25519, 448 and 256k1.
+	+ commit 237523b49f423be66261fa769e4558a36b84d15f
+	* mpi/ec.c (ec_addm_25519, ec_subm_25519, ec_mulm_25519, ec_addm_448)
+	(ec_subm_448, ec_mulm_448, ec_secp256k1_mod): Use mpih_limb_is_zero
+	and mpih_limb_is_not_zero instead of comparison to zero.
+
+	ec-nist: avoid unintentional conditional branch by comparison.
+	+ commit 2ed34074474650a50592fa86d9639614aa86476b
+	* mpi/ec-nist.c (_gcry_mpi_ec_nist521_mod): Use mpih_limb_is_not_zero.
+	* mpi/mpi-internal.h (mpih_limb_is_not_zero): New.
+
+	mpih_cmp_ui: avoid unintentional conditional branch.
+	+ commit 9acddd8b95e14fb7c82c96881c1ac9000a46d703
+	* mpi/mpi-internal.h (mpih_limb_is_zero): New.
+	* mpi/mpih-const-time.c (_gcry_mpih_cmp_ui): Use mpih_limb_is_zero
+	instead of comparison.
+
+	ec-nist: use global vone and vzero.
+	+ commit 610667fb2558ac5aae1393b99ceec3e50199e901
+	* mpi/ec-nist.c (vzero, vone): Remove.
+	(_gcry_mpi_ec_nist192_mod, _gcry_mpi_ec_nist224_mod)
+	(_gcry_mpi_ec_nist256_mod, _gcry_mpi_ec_nist384_mod): Use _gcry_ct_vzero
+	and _gcry_ct_vone.
+
+	mpiutil: use global vone and vzero.
+	+ commit 6377725ed01e090bea1223256f58eae0bfcc2021
+	* mpi/mpiutil.c (_gcry_mpi_set_cond, _gcry_mpi_swap_cond): Use
+	_gcry_ct_vzero and _gcry_ct_vone.
+
+	mpih-const-time: use global vzero/vone variable.
+	+ commit 15cd08ae4c1e7fccda89a42bb3e87f15dab4452f
+	* mpi/mpih-const-time.c (vzero, vone): Remove.
+	(_gcry_mpih_set_cond, _gcry_mpih_add_n_cond, _gcry_mpih_sub_n_cond)
+	(_gcry_mpih_swap_cond, _gcry_mpih_abs_cond): Use _gcry_ct_vzero and
+	_gcry_ct_vone.
+
+2023-11-06  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	const-time: ct_memmov_cond: switch to use dual mask approach.
+	+ commit 9c0984ed2c553289a744197791a6683f4bd2ce18
+	* src/const-time.c (_gcry_ct_memmov_cond): Use dual mask + AND/OR
+	instead of single mask + XOR.
+
+	const-time: prefix global symbols with _gcry_
+	+ commit 3fa1b81c92e5694ef0f2d01885eccbbc9944d267
+	* cipher/const-time.c (ct_not_memequal, ct_memequal)
+	(ct_memmov_cond): Rename these to ...
+	(_gcry_ct_not_memequal, _gcry_ct_memequal)
+	(_gcry_ct_memmov_cond): ... these.
+	* cipher/const-time.h (ct_not_memequal, ct_memequal)
+	(ct_memmov_cond): Rename these to ...
+	(_gcry_ct_not_memequal, _gcry_ct_memequal)
+	(_gcry_ct_memmov_cond): ... these.
+	(ct_not_memequal, ct_memequal, ct_memmov_cond): New macros.
+
+	mpih_set_cond: restore EM leakage mitigation.
+	+ commit 7f0eb519897b05e41fe43b0981453181266d457c
+	* mpi/mpih-const-time.c (_gcry_mpih_set_cond): Replace single mask + XOR
+	with dual mask + AND/OR; Add comment about reason for dual mask usage.
+	(_gcry_mpih_add_n_cond, _gcry_mpih_sub_n_cond, _gcry_mpih_swap_cond)
+	(_gcry_mpih_abs_cond): Add comment about reason for dual mask usage.
+
+	rsa, elgamal: avoid logical not operator in constant-time code.
+	+ commit 3583e2ebcad55bde178acc7a862cda30d1f2cd97
+	* cipher/elgamal.c (elg_decrypt): Replace ! operator with calls to
+	ct_is_not_zero/ct_is_zero/ct_ulong_select.
+	* cipher/rsa-common.c (_gcry_rsa_pkcs1_decode_for_enc): Replace !
+	operator with call to ct_is_zero.
+	* cipher/rsa.c (rsa_decrypt): Replace ! operator with calls to
+	ct_is_not_zero/ct_is_zero/ct_ulong_select.
+	* src/const-time.c (_gcry_ct_vzero, _gcry_ct_vone): New.
+	* src/const-time.h (_gcry_ct_vzero, _gcry_ct_vone): New.
+	(ct_is_not_zero, ct_is_zero, DEFINE_CT_TYPE_SELECT_FUNC)
+	(ct_uintptr_select, ct_ulong_select): New.
+	(sexp_null_cond): Use ct_uintptr_select.
+
+	const-time: always avoid comparison operator for byte comparison.
+	+ commit 5e9ba851948f97cd3fb70de474b87609b150d06a
+	* configure.ac: Remove POSSIBLE_CONDITIONAL_BRANCH_IN_BYTE_COMPARISON
+	macro.
+	* src/const-time.h (ct_not_equal_byte): Remove
+	POSSIBLE_CONDITIONAL_BRANCH_IN_BYTE_COMPARISON ifdef.
+
+	Use single constant-time memory comparison implementation.
+	+ commit 892bc25ff74b1fb84259babd4292da399dc3b185
+	* src/const-time.c (ct_not_memequal): Use original 'buf_eq_const'
+	implementation here.
+	(ct_memequal): New.
+	* cipher/bufhelp.h (buf_eq_const): Call to 'ct_memequal'.
+
+2023-11-06  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher: Fix ElGamal decryption.
+	+ commit 2839aaee3e6eed6a96f0a798b02eef7e0302c7e7
+	* cipher/elgamal.c (elg_decrypt): Call sexp_build always.
+	* cipher/rsa.c (rsa_decrypt): Return an error code of sexp_build
+	when RC != 0.
+
+	rsa: Use memmov_independently when unpadding.
+	+ commit c98b5e4a147170d578504498ba355a77de00b0f1
+	* cipher/rsa-common.c (memmov_independently): New.
+	(_gcry_rsa_pkcs1_decode_for_enc): Use memmov_independently.
+	(_gcry_rsa_oaep_decode): Use memmov_independently.
+
+	const-time: Add ct_memmov_cond, fix _gcry_mpih_set_cond.
+	+ commit 45945be8f3c3a77ce3e86ebda7d814defcd3f76b
+	* src/const-time.c (ct_memmov_cond): New.
+	* src/const-time.h (ct_memmov_cond): New.
+	* mpi/mpih-const-time.c (_gcry_mpih_set_cond): Use XOR and a MASK.
+
+	const-time: Use ct_not_memequal, instead.  Tested with AVR.
+	+ commit e8072d8d32558c289ad4cf7b5be26a25eda03c20
+	* cipher/rsa-common.c (_gcry_rsa_oaep_decode): Use ct_not_memequal.
+	* src/const-time.c (ct_not_memequal): Use ct_not_equal_byte.
+	* src/const-time.h (ct_not_memequal): Rename from ct_memequal.
+
+	build: Check if arch is VAX or compiler is MSVC.
+	+ commit fee1e63c7286cb12ff973ea446bc019f575887d2
+	* configure.ac (AH_BOTTOM): Add check for VAX and MSVC.
+	* src/const-time.h (POSSIBLE_CONDITIONAL_BRANCH_IN_BYTE_COMPARISON):
+	Rename.
+
+	rsa: Fix decoding of PKCS#1 v1.5 and OAEP padding.
+	+ commit 45c9920201687754719ddc15a88a25018a552695
+	* src/Makefile.am (libgcrypt_la_SOURCES): Add const-time.h and
+	const-time.c.
+	* src/const-time.h (ct_not_equal_byte, sexp_null_cond): New.
+	(ct_memequal): New from NetBSD, modified return type and name.
+	* src/const-time.c: New.
+	* cipher/rsa-common.c (_gcry_rsa_pkcs1_decode_for_enc): Examine whole
+	sequence of the byte-array.  Use N0 to find the separator position, with
+	ct_not_equal_byte.  Return the MPI even when the case of an error.
+	* cipher/rsa-common.c (_gcry_rsa_oaep_decode): Use ct_memequal to
+	check LHASH.  Examine all the sequence of the byte-array.  Use N1 to
+	find the separator of 0x01.  Return the MPI even when the case of an
+	error.
+	* cipher/rsa.c (rsa_decrypt): Always build a SEXP.
+
+2023-10-06  NIIBE Yutaka  <gniibe@fsij.org>
+
+	sexp: String with \0 is considered "binary".
+	+ commit 49e1e67f4e4e9f520586dc4ea8a8f2630bbf6e9c
+	* src/sexp.c (suitable_encoding): It's "binary" when
+	the buffer contains '\0'.
+
+2023-09-01  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Change the default for --with-libtool-modification.
+	+ commit 09ab619488455b0f9f27f2c8291ea646b089c13e
+	* configure.ac (--with-libtool-modification): default=never.
+
+2023-08-22  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: New configure option --with-libtool-modification.
+	+ commit 0ddc823e331c2a38b71f887abc917d8a5a9003af
+	* Makefile.am (EXTRA_DIST): Add build-aux/libtool-patch.sed.
+	* build-aux/libtool-patch.sed: New.
+	* configure.ac (--with-libtool-modification): New.
+
+2023-07-14  Bernhard Reiter  <bernhard@intevation.de>
+
+	build: Fix the notice in configure.ac.
+	+ commit c8ee15dfe8696c58ba493b118f6eff1c095e02ae
+	* configure.ac: Fix typo.
+
+2023-06-19  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:pubkey: Check digest size which should not be zero.
+	+ commit 8cdd0d353e19a4514dfe3c99146d17f07bf0fb4d
+	* cipher/pubkey.c (gcry_pk_sign_md): Check the digest size
+	before calling _gcry_md_read.
+
+2023-06-16  NIIBE Yutaka  <gniibe@fsij.org>
+
+	tests: Allow KDF measurement in FIPS mode.
+	+ commit 5547e5255c465e99ccd3ffce2b7622e75f2d89a4
+	* tests/bench-slope.c (bench_kdf_init): Tweak the iterations in FIPS
+	mode.
+	(bench_kdf_do_bench): Use larger values to avoid rejection in FIPS
+	mode.
+
+	cipher:kdf: Move FIPS mode check to _gcry_kdf_derive.
+	+ commit 2c8562ca5a49edc0c82c8c4775edebabc31cf09e
+	* cipher/kdf.c (_gcry_kdf_pkdf2): Move the checks to...
+	(_gcry_kdf_derive): ... here.
+
+	Remove out of core handler setting message in FIPS mode.
+	+ commit d37ad2823f849ce71b509245ecc169835cf80d1e
+	* src/global.c (_gcry_set_outofcore_handler): Don't call log_info.
+
+	cipher:ecc: Fix an error-path to release the KEY correctly.
+	+ commit 31adc78fa503be388af430e9b218a83fb4b1ea7f
+	* cipher/ecc.c (ecc_generate): Set *R_SKEY to NULL.
+
+2023-06-15  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher:pubkey: Fix non-use of flexible array member.
+	+ commit 297c5a47837cfd94ed5b317b45f6e776502dd2cd
+	* cipher/pubkey.c (struct pk_single_data): Use 1 as the size.
+	(_gcry_pk_single_data_push): Use offsetof.
+
+	cipher:ecc: Fix public key computation for EdDSA.
+	+ commit b863ec507dae17fe2c38653e1ccf22de62b68ac4
+	* cipher/ecc-misc.c (_gcry_ecc_compute_public): Fix hard-coded length
+	for digest lower bits.
+
+2023-06-02  Werner Koch  <wk@gnupg.org>
+
+	mpicalc: Allow for addm and subm.
+	+ commit 2974a635e5d3ca477508527f5c401619879cb19f
+	* src/mpicalc.c (do_add, do_sub): Add arg usemod.
+	(main): Add oeprator 'M'.
+
+2023-04-21  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	doc: add documentation for GCRYCTL_SET_ALLOW_WEAK_KEY.
+	+ commit 7cdfc869b7afa057839fd361bfff9140cfbe63ed
+	* doc/gcrypt.texi: Add 'GCRYCTL_SET_ALLOW_WEAK_KEY' under
+	'gcry_cipher_ctl'.
+
+	Revert "cipher: Fix edge case for SET_ALLOW_WEAK_KEY."
+	+ commit 9b1ee0574ed96800429aa9488b6dcb11a5407542
+	* cipher/cipher.c (cipher_setkey): Do not reset RC.
+
+2023-04-16  Werner Koch  <wk@gnupg.org>
+
+	cipher: Fix edge case for SET_ALLOW_WEAK_KEY.
+	+ commit b75a58df84a5137954cb678adf8c202b39ee1def
+	* cipher/cipher.c (cipher_setkey): Reset RC.
+
+2023-04-11  NIIBE Yutaka  <gniibe@fsij.org>
+
+	random: Use getrandom only when it's appropriate.
+	+ commit d41177937cea4aa1e9042ebcd195a349c40e8071
+	* random/rndgetentropy.c (_gcry_rndgetentropy_gather_random)
+	[GRND_RANDOM]: Conditionalize the use of getrandom, as it's
+	not a portable function.
+
+2023-04-06  Werner Koch  <wk@gnupg.org>
+
+	Release 1.10.2.
+	+ commit 1c5cbacf3d88dded5063e959ee68678ff7d0fa56
+
+
+2023-04-04  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher: Enable the fast path to ChaCha20 only when supported.
+	+ commit 4128f73d3a83c7f901924488c3bbf047b75db20f
+	cipher/cipher-poly1305.c (_gcry_cipher_poly1305_encrypt)
+	(_gcry_cipher_poly1305_decrypt) [USE_CHACHA20]: Conditionalize.
+
+	build: Allow build with -Oz.
+	+ commit f2ab06bc3cccd1f6c9a012275d90df9f3956572b
+	* cipher/Makefile.am [ENABLE_O_FLAG_MUNGING]: Support -Oz.
+	* random/Makefile.am [ENABLE_O_FLAG_MUNGING]: Support -Oz.
+
+2023-04-03  NIIBE Yutaka  <gniibe@fsij.org>
+
+	m4: Update gpg-error.m4.
+	+ commit c118a8ddd0224f951f26ae78d58d0eed5ee35779
+	* m4/gpg-error.m4: Update from libgpg-error master.
+
+2023-03-24  NIIBE Yutaka  <gniibe@fsij.org>
+
+	fips: More elaborate way of getting FIPS pk flags indicators.
+	+ commit f6f345fe89b0a61408bbc72058ab42ac6e6a7577
+	* src/fips.c (_gcry_fips_indicator_pk_flags): List more allowed string
+	in the S-expression.
+	* doc/gcrypt.texi: Add document for the FIPS service indicator
+	GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS with example.
+
+2023-03-23  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Update gpg-error.m4.
+	+ commit f815ae113a2a914b0d20f0eb36d91c0351d5a797
+	* m4/gpg-error.m4: Update from libgpg-error master.
+
+2023-03-14  Jakub Jelen  <jjelen@redhat.com>
+
+	tests: Improve test coverage for FIPS service indicators.
+	+ commit 22cb410dd4456a84b5bde8be6a907afdc38a792b
+	* tests/basic.c (check_digests): Check the FIPS indicators.
+	(check_mac): Ditto.
+
+	fips: Explicitly disable overriding random in FIPS mode.
+	+ commit 251f1749900e355ee6b027ee6a5c070eba16c85f
+	* src/fips.c: (_gcry_fips_indicator_function): Mark using random
+	override non-approved in FIPS mode.
+
+	fips: Mark gcry_pk_encrypt/decrypt function non-approved.
+	+ commit 051bbe84d889b413f158c665e5cc25b26c820388
+	* src/fips.c (_gcry_fips_indicator_function): Add
+	gcry_pk_encrypt/decrypt as non-approved.
+
+	fips: Fix fips indicator function.
+	+ commit 6805d76b7ed4886f00bf704c77b0549408097219
+	* src/fips.c (_gcry_fips_indicator_function): Fix typo in sign/verify
+	function names.
+
+	fips: Explicitly allow only some PK flags.
+	+ commit 0b2b30c0c42fa2fea646a83a1f21a99f7a902853
+	* src/fips.c (_gcry_fips_indicator_pk_flags): New function for explicit
+	  FIPS indicator for public key algorithm flags.
+	* src/g10lib.h (_gcry_fips_indicator_pk_flags): New.
+	* src/gcrypt.h.in (GCRYCTL_FIPS_SERVICE_INDICATOR_PK_FLAGS): New.
+	* src/global.c (_gcry_vcontrol): Handle the new option.
+	* doc/gcrypt.texi: Document new options.
+
+2023-03-14  Tobias Heider  <tobias.heider@canonical.com>
+
+	doc: Document the new FIPS indicators.
+	+ commit fcb9ec67a11763ca10fa1b64166c206da95eb006
+	* doc/gcrypt.texi: Document the new options for FIPS indicators.
+
+2023-03-08  Tobias Heider  <tobias.heider@canonical.com>
+
+	fips: Unblock MD5 in fips mode but mark non-approved in indicator.
+	+ commit 0024db5afee825185ddf26cd9a91f563b8c11b1a
+	* cipher/mac-hmac.c (_gcry_mac_type_spec_hmac_md5): Allow in fips mode.
+	* cipher/md5.c (_gcry_digest_spec_md5): Allow in fips mode.
+
+	fips: Add explicit indicators for md and mac algorithms.
+	+ commit a51f0e66842ae989cd3966e5ef5eb1f62a3576b1
+	* src/fips.c (_gcry_fips_indicator_mac): New function indicating
+	non-approved mac algorithms.
+	(_gcry_fips_indicator_md): new functions indicating non-approved
+	message digest algorithms.
+	* src/g10lib.h (_gcry_fips_indicator_mac): New function.
+	(_gcry_fips_indicator_md): Ditto.
+	* src/gcrypt.h.in (enum gcry_ctl_cmds): New symbols,
+	GCRYCTL_FIPS_SERVICE_INDICATOR_MAC and
+	GCRYCTL_FIPS_SERVICE_INDICATOR_MD.
+	* src/global.c (_gcry_vcontrol): Handle new FIPS indicators.
+
+2023-03-07  Jakub Jelen  <jjelen@redhat.com>
+
+	kdf: Update tests in regards to the allowed parameters in FIPS mode.
+	+ commit 397ff085749e5b47095827d19561332a67007c02
+	* cipher/kdf.c (check_one): run selftests for more approved parameters
+	and check that wrong parameters correctly fail in FIPS mode.
+
+	fips: Check return value from ftell.
+	+ commit 076dd2ffcd953d80172770d8bb98c2c945dad7c9
+	* src/fips.c (get_file_offset): Check return value of ftell to be able
+	  to detect errors.
+
+	random: Remove unused SHA384 DRBGs.
+	+ commit 4cff7e739829294d5f4a364d35584b42ef81af9f
+	* random/random-drbg.c (global): Remove unused SHA384-based defines.
+	(drbg_cores): Remove SHA384 configurations.
+	(drbg_sec_strength): Remove unused SHA384.
+
+	visibility: Check FIPS operational status for MD+Sign operation.
+	+ commit fc19b27b543910833096a738dae0703b3dc57d51
+	* src/visibility.c (gcry_pk_hash_sign): Check fips status before
+	calling the operation itself.
+	(gcry_pk_hash_verify): Ditto.
+
+	ecc: Make the PCT recoverable in FIPS mode and consistent with RSA.
+	+ commit c41d4f502f1b8aa08b2a79cbee3c8cd73e73adbe
+	* cipher/ecc.c (test_keys_fips): Replace calls to log_fatal with
+	return code on error.
+	(ecc_generate): Signal error when PCT fails in FIPS mode.
+
+	ecc: Do not allow skipping tests in FIPS Mode.
+	+ commit 44a3f26539f7e88a77bbf4fe5d35ddd24f87ffcd
+	* cipher/ecc.c (ecc_generate): Do not allow skipping tests PCT tests
+	in FIPS mode.
+
+2023-01-23  Jakub Jelen  <jjelen@redhat.com>
+
+	fips: Remove GCM mode from the allowed FIPS indicators.
+	+ commit 1540698389ba2091baab6e020e5ec7b0d0eead59
+	* src/fips.c (_gcry_fips_indicator_cipher): Do not mark GCM mode as
+	FIPS approved.
+
+2022-12-16  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Fix m4 macros for strict C compiler.
+	+ commit b1a3424e7f8030361c2e4806920e60ec06c1d9e3
+	* m4/ax_cc_for_build.m4: Fix for no arg.
+	* m4/noexecstack.m4: Likewise.
+
+	build: Fix configure.ac for strict C99.
+	+ commit 83ea195b61d571e48f53803d2d297ec02035ae36
+	* configure.ac: Add function declarations for asm functions.
+
+2022-12-07  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	t-rsa-testparm: fix 'function declaration isn’t a prototype' warning.
+	+ commit bdeea2a53e9ef869caa2f8ae2dd876ad397aed12
+	* cipher/t-rsa-testparm.c (check_rsa_testparm): Define parameters as
+	void.
+
+2022-12-07  Jakub Jelen  <jjelen@redhat.com>
+
+	fips,rsa: Prevent usage of X9.31 keygen in FIPS mode.
+	+ commit 392e0ccd25f397d789a1cb59fae2f3faae46e78b
+	* cipher/rsa.c (rsa_generate): Do not accept use-x931 or derive-parms
+	in FIPS mode.
+	* tests/pubkey.c (get_keys_x931_new): Expect failure in FIPS mode.
+	(check_run): Skip checking X9.31 keys in FIPS mode.
+	* doc/gcrypt.texi: Document "test-parms" and clarify some cases around
+	the X9.31 keygen.
+
+2022-12-05  Jakub Jelen  <jjelen@redhat.com>
+
+	rsa: Prevent usage of long salt in FIPS mode.
+	+ commit fdd2a8b3329eb892f90d2cd803762ef06222c226
+	* cipher/rsa-common.c (_gcry_rsa_pss_encode): Prevent usage of large
+	  salt lengths
+	  (_gcry_rsa_pss_verify): Ditto.
+	* tests/basic.c (check_pubkey_sign): Check longer salt length fails in
+	  FIPS mode
+	* tests/t-rsa-pss.c (one_test_sexp): Fix function name in error message
+
+2022-11-18  Jakub Jelen  <jjelen@redhat.com>
+
+	fips: Mark AES key wrapping as approved.
+	+ commit 20ad5df60b035e721de7cfc40cd76a1a13051072
+	* src/fips.c (_gcry_fips_indicator_cipher): Add key wrapping mode as
+	approved.
+
+	pkdf2: Add checks for FIPS.
+	+ commit 057844700ec2e652249b0b80136229c049d41975
+	* cipher/kdf.c (_gcry_kdf_pkdf2): Require 8 chars passphrase for FIPS.
+	Set bounds for salt length and iteration count in FIPS mode.
+
+2022-11-01  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Prefer gpgrt-config when available.
+	+ commit 5191379da3ad653fcf08ab1babb486ca952d1643
+	* src/libgcrypt.m4: Overriding the decision by
+	--with-libgcrypt-prefix, use gpgrt-config libgcrypt when gpgrt-config
+	is available.
+
+2022-10-27  Jakub Jelen  <jjelen@redhat.com>
+
+	hmac,hkdf: Check the HMAC key length in FIPS mode.
+	+ commit e7b1fbda6a9e0b6bf99062fc86139445a4e0766e
+	* src/visibility.c (gcry_md_setkey): Add the check here, too.
+
+	Revert "kdf:pkdf2: Require longer input when FIPS mode."
+	+ commit 7f4fafb5564dec6fe65f0e93a1125cb6ddb4d1ed
+	* cipher/kdf.c (_gcry_kdf_pkdf2): Remove the length limitation of
+	  passphrase input length.
+
+2022-10-24  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Update gpg-error.m4.
+	+ commit e2c0920fd7dea6e254badd12958982c66080b7db
+	* m4/gpg-error.m4: Update from libgpg-error 1.46.
+
+2022-10-06  Jakub Jelen  <jjelen@redhat.com>
+
+	tests: Reproducer for short dklen in FIPS mode.
+	+ commit e235f38f9b9fc3cd4464bbf9081da765d46ce87d
+	* tests/t-kdf.c (check_pbkdf2): Add test vector with short dklen and
+	  verify it fails in FIPS mode
+
+	random: Extend the comment about FIPS specifics.
+	+ commit 96615490c7b1d5f77de7f7f2b77e775540f7f6bf
+	* random/rndgetentropy.c (_gcry_rndgetentropy_gather_random): Clarify
+	  description of the chainging DRBG in FIPS mode.
+
+2022-10-04  Jakub Jelen  <jjelen@redhat.com>
+
+	random: Get maximum 32B of entropy at once in FIPS Mode.
+	+ commit ce0df08bbab741cd2ad19a5a0e8b65fb62774f87
+	* random/rndgetentropy.c (_gcry_rndgetentropy_gather_random): In fips
+	mode, gather max 32 B of strong entropy for initialization.
+
+	keccak: Use size_t to avoid integer overflow.
+	+ commit 9ee2d56e806b8018fa3ae354a65f1e70bf73dede
+	* cipher/keccak-armv7-neon.S: Fix function name in comment and change
+	  parameter type to size_t.
+	* cipher/keccak.c (keccak_ops_t): Change absorb function signature to
+	  use size_t.
+	  (keccak_absorb_lanes64_avx512): Change nlanes type to size_t.
+	  (_gcry_keccak_absorb_lanes64_armv7_neon): Ditto.
+	  (keccak_absorb_lanes64_armv7_neon): Ditto.
+	  (keccak_absorb_lanes32bi): Ditto.
+	  (keccak_absorb_lanes32bi_bmi2): Ditto.
+	  (keccak_write): Change nlanes variable to use size_t and avoid
+	  overflow when calculating count.
+	* cipher/keccak_permute_64.h (KECCAK_F1600_ABSORB_FUNC_NAME): Change
+	  nlanes argument to use size_t.
+
+2022-10-04  Tobias Heider  <tobias.heider@canonical.com>
+
+	kdf:pkdf2: Check minimum allowed key size when running in FIPS mode.
+	+ commit 52d48b710470dd48dd2a32a439898ece10ef05fd
+	* cipher/kdf.c (_gcry_kdf_pkdf2): Add output length check.
+
+2022-10-04  NIIBE Yutaka  <gniibe@fsij.org>
+
+	kdf:pkdf2: Require longer input when FIPS mode.
+	+ commit d09d3d33c79daa2f8d385dfedf3f20ad205b0fba
+	* cipher/kdf.c (_gcry_kdf_pkdf2): Add length check.
+
+2022-09-22  NIIBE Yutaka  <gniibe@fsij.org>
+
+	build: Fix configure script.
+	+ commit 44812a1d96fc003e6e0d01270c514b91e295d300
+	* configure.ac (AC_USE_SYSTEM_EXTENSIONS): Use it earlier.
+
+2022-09-22  Clemens Lang  <cllang@redhat.com>
+
+	fips: Skip PCT if RSA keygen test-parms specified.
+	+ commit 4963c127ae698d98f30483ba9d15d093aae4e51d
+	* cipher/rsa.c (rsa_generate): Skip PCT is test-parms were specified.
+	* tests/t-rsa-testparm.c: Add test for this functionality
+	* tests/Makefile.am: Add test to build system
+
+	build: Skip PK-specific tests if algo is disabled.
+	+ commit 1524b60a7ccc17fb82e91b90236a88a27b113175
+	* configure.ac: Define AM_CONDITIONALs for USE_DSA, USE_RSA,
+	  USE_ELGAMAL, USE_ECC so Makefiles can depend on them.
+	* tests/Makefile.am: Skip tests that test only one public key algorithm
+	  if that algorithm is disabled.
+
+2022-09-20  NIIBE Yutaka  <gniibe@fsij.org>
+
+	Fix _gcry_err_code_to_errno.
+	+ commit 16ac1850b854abe9b6f693a489ceeb0048777bfa
+	* src/gcrypt-int.h: Use gpg_err_code_to_errno.
+
+2022-08-30  Jakub Jelen  <jjelen@redhat.com>
+
+	tests: Expect the OEAP tests to fail in FIPS mode.
+	+ commit 658679e0ec8be9693a3deb6b85c2b39cb112218c
+	* tests/basic.c (check_pubkey_crypt): Expect the OAEP padding encryption
+	  to fail in FIPS mode
+	* tests/pkcs1v2.c (check_oaep): Expect the OAEP tests to fail in FIPS
+	  mode
+
+	fips: Disable RSA-OAEP padding in FIPS mode.
+	+ commit e5bfda492ab9496ed3d856a9f36250a2cc07ce70
+	* cipher/pubkey-util.c (_gcry_pk_util_data_to_mpi): Block OAEP padding
+	  in FIPS mode for encryption
+	* cipher/rsa.c (rsa_decrypt): Block OAEP padding in FIPS mode for
+	  decryption
+
+	random: Use getrandom (GRND_RANDOM) in FIPS mode.
+	+ commit cf10c74bd9d5aa80798f1c0e23a9126f381b26b3
+	* random/rndgetentropy.c (_gcry_rndgetentropy_gather_random): Use
+	  GRND_RANDOM in FIPS Mode
+
+	Simplify the PCT for RSA and ECDSA.
+	+ commit 285bf54b1ac7b5609a675655fe2cb9117ab78d3d
+	Could be squashed.
+
+	* cipher/ecc.c (test_keys_fips): Simplify to accept key in SEXP format
+	  (nist_generate_key): Skip call to test keys
+	  (ecc_generate): Call test keys in FIPS mode later, when we have
+	  complete SEXP key structure.
+	* cipher/rsa.c (test_keys_fips): Simplify to accept key in SEXP format
+	  (generate_fips): Skip selftest at this stage
+	  (rsa_generate): Test the keys later when we already have key in SEXP
+	  format
+
+	ecc: Run PCT also with the digest step.
+	+ commit 076a8adaf314d593ca25c245d2a74207710a4fe7
+	* cipher/ecc.c (test_keys_fips): New function
+	  (nist_generate_key): In FIPS mode, execute new PCT test
+	---
+
+	Cherry-picked from master commit:
+		505f048cac8e5af92d3431bd97ade492d1a30bc2
+
+	rsa: Run PCT in FIPS mode also with digest step.
+	+ commit 78151e6d6bbbbf1248b7c32cbab0b9b638ad6c11
+	* cipher/rsa.c (test_keys_fips): New.
+	(generate_fips): Call test_keys_fips.
+
+	fips: Add function-name based FIPS indicator.
+	+ commit 822ee57f07cad6b32fac265a1a9e195d7cf99fa9
+	* doc/gcrypt.texi: Document the new function-based fips indicator
+	  GCRYCTL_FIPS_SERVICE_INDICATOR_FUNCTION
+	* src/fips.c (_gcry_fips_indicator_function): New function indicating
+	  non-approved functions.
+	* src/gcrypt.h.in (enum gcry_ctl_cmds): New symbol
+	  GCRYCTL_FIPS_SERVICE_INDICATOR_FUNCTION
+	* src/global.c (_gcry_vcontrol): Handle new FIPS indicator.
+
+	fips: Run digest&sign self tests for RSA and ECC in FIPS mode.
+	+ commit 06c9350165d7284cd9fe569fd23e6c6cf371dba2
+	* cipher/ecc.c (selftest_hash_sign): Implement digest & sign KAT
+	 (selftests_ecdsa): Run the original basic test only with extended tests
+	 (run_selftests): Pass-through the extended argument
+	* cipher/rsa.c (selftest_hash_sign_2048): Implement digest & sign KAT
+	 (selftests_rsa): Run the original basic test only with extended tests
+	 (run_selftests): Pass-through the extended argument
+
+2022-08-15  NIIBE Yutaka  <gniibe@fsij.org>
+
+	hmac: Allow use of shorter salt.
+	+ commit ab5aef9b7b6ef757eff7bea4a17ade0ce3d3191b
+	* cipher/md.c (prepare_macpads): Move the check to...
+	* src/visibility.c (gcry_mac_setkey): ... here.
+
+2022-07-13  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher: Fix gcry_pk_hash_verify for explicit hash.
+	+ commit 1d3a90a4d118eafa6b2f777c998e85327a77fb3c
+	* cipher/pubkey.c (_gcry_pk_verify_md): Implement support of explicit
+	hash.
+	* tests/t-ecdsa.c (one_test_sexp): Use explicit hash.
+
+2022-07-13  Clemens Lang  <cllang@redhat.com>
+
+	tests/t-kdf: Test KDF FIPS indicator.
+	+ commit 3bbcf16e0b8b63d70893f6d9cc0fe77f7d8bc17b
+	 * tests/t-kdf.c (check_fips_indicators): Add test for gcry_control
+	   (GCRYCTL_FIPS_SERVICE_INDICATOR_KDF).
+
+	tests: Test gcry_pk_hash_sign w/explicit hash algo.
+	+ commit 04960f5179cd9732931b9f245a902a8a34bde964
+	 * tests/t-ecdsa.c (one_test_sexp): Re-run signature operation with hash
+	   algorithm explicitly specified in data_tmpl as documented in the
+	   manpage.
+
+2022-07-13  NIIBE Yutaka  <gniibe@fsij.org>
+
+	random: Fix rndjent for Windows.
+	+ commit bc01c770c75703992fc0585d76d84107bdcd9fea
+	* random/jitterentropy-base-user.h [HAVE_W32_SYSTEM] (jent_ncpu):
+	Implement.
+	* random/rndjent.c (_WIN32_WINNT): Define for GetNativeSystemInfo.
+	(EOPNOTSUPP): Define when not available.
+
+2022-06-16  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Allow building with --disable-asm for HPPA.
+	+ commit d1cb2599e9d746bb3a088c63b24f8191072e11ef
+	* mpi/longlong.h [__hppa] (udiv_qrnnd): Only define
+	when assembler is enabled.
+
+2022-05-31  Jakub Jelen  <jjelen@redhat.com>
+
+	tests: Fix copy paste error.
+	+ commit 4b85bf33cce7ee331d4da1b99620aed6f9fbf846
+	* tests/basic.c (check_ocb_cipher_checksum): Check the right value for
+	  errors
+
+	Fix memory leaks in tests.
+	+ commit 735601494adb22a6ec8b1a4eacf1f75480a7c203
+	* tests/aeswrap.c (check_one_with_padding): Free hd on error paths
+	* tests/basic.c (check_ccm_cipher): Free context on error paths
+	  (check_ocb_cipher_checksum): Ditto.
+	  (do_check_xts_cipher): Ditto.
+	  (check_gost28147_cipher_basic): Ditto.
+	* tests/bench-slope.c (bench_ecc_init): Free memory on invalid input.
+	* tests/t-cv25519.c (test_it): Free memory on error path
+	* tests/t-dsa.c (hex2buffer): Free memory on error path
+	* tests/t-ecdsa.c (hex2buffer): Free memory on error path
+	  (one_test_sexp): Cleanup memory on exit
+	* tests/t-mpi-point.c (check_ec_mul): Free memory on error
+	  (check_ec_mul_reduction): Ditto
+	* tests/t-rsa-15.c (hex2buffer): Ditto
+	* tests/t-rsa-pss.c (hex2buffer): Ditto
+	* tests/t-x448.c (test_it): Free memory on error path
+	* tests/testdrv.c (my_spawn): Free memory on error paths
+
+2022-05-19  Jakub Jelen  <jjelen@redhat.com>
+
+	cipher: Allow verification of small RSA signatures in FIPS mode.
+	+ commit 468ffa8f9c471c910280e0d0ade521d0184ed533
+	* cipher/rsa.c (rsa_check_keysize): Formatting.
+	  (rsa_check_verify_keysize): New function.
+	  (rsa_verify): Allow using smaller keys for verification.
+
+2022-05-17  NIIBE Yutaka  <gniibe@fsij.org>
+
+	Fix internal declaration of _gcry_kdf_compute.
+	+ commit 6d3708942f846e389bd87fe3d7c6e7a1b3615bca
+	* src/gcrypt-int.h (_gcry_kdf_compute): Return gcry_err_code_t.
+
+2022-05-10  NIIBE Yutaka  <gniibe@fsij.org>
+
+	mpi: Fix for 64-bit for _gcry_mpih_cmp_ui.
+	+ commit 03af3d5cc5d54b6f810264568d6de22cd9e7d34f
+	* mpi/mpih-const-time.c (_gcry_mpih_cmp_ui): Compare 64-bit
+	value correctly.
+
+2022-05-06  NIIBE Yutaka  <gniibe@fsij.org>
+
+	random:drbg: Fix the behavior for child process.
+	+ commit 019a40c99011390f12168e79e3bebd0ff52cc003
+	* random/random-drbg.c (_gcry_rngdrbg_randomize): Update change of PID
+	detection.
+
+2022-05-06  Jakub Jelen  <jjelen@redhat.com>
+
+	tests: Expect the RSA PKCS #1.5 encryption to fail in FIPS mode.
+	+ commit 1a270cda2ee5fe345f480b4eda13b92a7b7f556e
+	* tests/basic.c (check_pubkey_crypt): Expect RSA PKCS #1.5 encryption to
+	  fail in FIPS mode. Expect failure when wrong padding is selected
+	* tests/pkcs1v2.c (check_v15crypt): Expect RSA PKCS #1.5 encryption to
+	  fail in FIPS mode
+
+	tests: Replace custom bit with more generic flags.
+	+ commit 9c55ba3bc1ce72307886f6d88f37d908e3fad39a
+	* tests/basic.c (global): New flag FLAG_SPECIAL
+	  (check_pubkey_crypt): Change to use bitfield flags
+
+	Do not allow PKCS #1.5 padding for encryption in FIPS.
+	+ commit d8a13d97ccb62c8f7564192f0c8dcdc0b4d9745a
+	* cipher/pubkey-util.c (_gcry_pk_util_data_to_mpi): Block PKCS #1.5
+	  padding for encryption in FIPS mode
+	* cipher/rsa.c (rsa_decrypt): Block PKCS #1.5 decryption in FIPS mode
+
+2022-05-06  NIIBE Yutaka  <gniibe@fsij.org>
+
+	random: Not use secure memory for DRBG instance.
+	+ commit 9452640125d239937dfb9cde49be7c0dde2f65ee
+	* random/random-drbg.c (drbg_instance): New at BSS.
+	(_drbg_init_internal): Don't allocate at secure memory.
+	(_gcry_rngdrbg_close_fds): Follow the change.
+
+	cipher: Change the bounds for RSA key generation round.
+	+ commit f6a67c2215310e9463267e15569697d3103b27f7
+	* cipher/rsa.c (generate_fips): Use 10 for p, 20 for q.
+
+2022-04-19  NIIBE Yutaka  <gniibe@fsij.org>
+
+	cipher: Fix rsa key generation.
+	+ commit 26df4b8d8c938fd837b99355de5163b9364d49a5
+	* cipher/rsa.c (generate_fips): Set the least significant bit.
+
+2022-04-02  Jussi Kivilinna  <jussi.kivilinna@iki.fi>
+
+	hwf-ppc: fix missing HWF_PPC_ARCH_3_10 in HW feature.
+	+ commit e073f0ed446601bffe787912462119a98e797fa3
+	* src/hwf-ppc.c (ppc_features): Add HWF_PPC_ARCH_3_10.
+
+2022-03-29  NIIBE Yutaka  <gniibe@fsij.org>
+
+	kdf:argon2: Fix for the case output > 64.
+	+ commit 13b5454d2620701863f6e89221f5f4c98d2aba8e
+	* cipher/blake2.c (blake2b_vl_hash): Fix the last step.
+	* cipher/kdf.c (argon2_open): Check the value.
+
 2022-03-28  Werner Koch  <wk@gnupg.org>
 
 	Release 1.10.1.
