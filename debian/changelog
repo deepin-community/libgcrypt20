@@ -1,3 +1,9 @@
+libgcrypt20 (1.10.3-2deepin1) unstable; urgency=medium
+
+  * feat: add sw support.
+
+ -- hudeng <hudeng@deepin.org>  Thu, 29 May 2025 17:48:53 +0800
+
 libgcrypt20 (1.10.3-2) unstable; urgency=medium
 
   * Upload to unstable.
