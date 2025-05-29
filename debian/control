@@ -11,8 +11,8 @@ Build-Depends:
  debhelper-compat (= 13),
  libgpg-error-dev,
 Build-Depends-Indep:
- libgpg-error-mingw-w64-dev,
- mingw-w64,
+ libgpg-error-mingw-w64-dev [!sw64],
+ mingw-w64 [!sw64],
  texinfo,
  texlive-latex-base,
  texlive-plain-generic,

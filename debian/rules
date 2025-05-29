@@ -26,6 +26,7 @@ override_dh_auto_build-indep:
 	rm -f build-aux/texinfo.tex
 	cd build/doc && $(MAKE) stamp-vti
 	cd build/doc && $(MAKE) pdf html
+ifneq (sw64, $(shell dpkg-architecture -qDEB_BUILD_ARCH))
 	for cpu in i686 x86_64; do \
 	  mkdir -p build-$$cpu-w64-mingw32 && \
 	  cd build-$$cpu-w64-mingw32 && \
@@ -42,17 +43,22 @@ override_dh_auto_build-indep:
 	  || exit 1 ; \
 	  cd .. ; \
 	done
+else
+	: > debian/libgcrypt-mingw-w64-dev.install
+endif
 
 debian/tmp/usr/include/gcrypt.h:
 	dh_auto_install --verbose --builddirectory=build
 
 override_dh_auto_install-indep:	debian/tmp/usr/include/gcrypt.h
+ifneq (sw64, $(shell dpkg-architecture -qDEB_BUILD_ARCH))
 	for cpu in i686 x86_64; do \
 	  cd build-$$cpu-w64-mingw32 && \
 	  $(MAKE) install DESTDIR=$(shell pwd)/debian/tmp \
 	  || exit 1 ; \
 	  cd .. ; \
 	done
+endif
 	find debian/tmp -name libgcrypt.la -type f -delete
 
 override_dh_auto_install-arch:
