@@ -29,8 +29,8 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
-# License along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+# License along with this program; if not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: LGPL-2.1-or-later
 
 
 VPATH = @srcdir@
@@ -121,15 +121,15 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cc_for_build.m4 \
 	$(top_srcdir)/m4/gpg-error.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/m4/noexecstack.m4 $(top_srcdir)/m4/socklen.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/noexecstack.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(noinst_HEADERS) \
 	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = hashtest-256g basic-disable-all-hwf
+CONFIG_CLEAN_FILES = hashtest-6g hashtest-256g basic-disable-all-hwf
 CONFIG_CLEAN_VPATH_FILES =
 @USE_RSA_TRUE@am__EXEEXT_1 = pkcs1v2$(EXEEXT) t-rsa-pss$(EXEEXT) \
 @USE_RSA_TRUE@	t-rsa-15$(EXEEXT) t-rsa-testparm$(EXEEXT)
@@ -143,8 +143,9 @@ am__EXEEXT_4 = version$(EXEEXT) t-secmem$(EXEEXT) mpitests$(EXEEXT) \
 	t-mpi-point$(EXEEXT) t-lock$(EXEEXT) prime$(EXEEXT) \
 	basic$(EXEEXT) keygen$(EXEEXT) pubkey$(EXEEXT) hmac$(EXEEXT) \
 	hashtest$(EXEEXT) t-kdf$(EXEEXT) keygrip$(EXEEXT) \
-	aeswrap$(EXEEXT) random$(EXEEXT) $(am__EXEEXT_1) \
-	$(am__EXEEXT_2) $(am__EXEEXT_3)
+	aeswrap$(EXEEXT) random$(EXEEXT) t-kem$(EXEEXT) \
+	t-mlkem$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_3)
 am__EXEEXT_5 = benchmark$(EXEEXT) bench-slope$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 aeswrap_SOURCES = aeswrap.c
@@ -267,12 +268,20 @@ t_kdf_OBJECTS = t_kdf-t-kdf.$(OBJEXT)
 t_kdf_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_kdf_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+t_kem_SOURCES = t-kem.c
+t_kem_OBJECTS = t-kem.$(OBJEXT)
+t_kem_LDADD = $(LDADD)
+t_kem_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
 t_lock_SOURCES = t-lock.c
 t_lock_OBJECTS = t_lock-t-lock.$(OBJEXT)
 t_lock_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
 t_lock_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(t_lock_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+t_mlkem_SOURCES = t-mlkem.c
+t_mlkem_OBJECTS = t-mlkem.$(OBJEXT)
+t_mlkem_LDADD = $(LDADD)
+t_mlkem_DEPENDENCIES = $(standard_ldadd) $(am__DEPENDENCIES_1)
 t_mpi_bit_SOURCES = t-mpi-bit.c
 t_mpi_bit_OBJECTS = t-mpi-bit.$(OBJEXT)
 t_mpi_bit_DEPENDENCIES = $(standard_ldadd)
@@ -341,7 +350,8 @@ am__depfiles_remade = ./$(DEPDIR)/aeswrap.Po ./$(DEPDIR)/basic.Po \
 	./$(DEPDIR)/rsacvt.Po ./$(DEPDIR)/t-convert.Po \
 	./$(DEPDIR)/t-cv25519.Po ./$(DEPDIR)/t-dsa.Po \
 	./$(DEPDIR)/t-ecdsa.Po ./$(DEPDIR)/t-ed25519.Po \
-	./$(DEPDIR)/t-ed448.Po ./$(DEPDIR)/t-mpi-bit.Po \
+	./$(DEPDIR)/t-ed448.Po ./$(DEPDIR)/t-kem.Po \
+	./$(DEPDIR)/t-mlkem.Po ./$(DEPDIR)/t-mpi-bit.Po \
 	./$(DEPDIR)/t-mpi-point.Po ./$(DEPDIR)/t-rsa-15.Po \
 	./$(DEPDIR)/t-rsa-pss.Po ./$(DEPDIR)/t-rsa-testparm.Po \
 	./$(DEPDIR)/t-secmem.Po ./$(DEPDIR)/t-sexp.Po \
@@ -372,17 +382,17 @@ SOURCES = aeswrap.c basic.c bench-slope.c benchmark.c curves.c \
 	hashtest.c hmac.c keygen.c keygrip.c mpitests.c pkbench.c \
 	pkcs1v2.c prime.c pubkey.c random.c rsacvt.c t-convert.c \
 	t-cv25519.c t-dsa.c t-ecdsa.c t-ed25519.c t-ed448.c t-kdf.c \
-	t-lock.c t-mpi-bit.c t-mpi-point.c t-rsa-15.c t-rsa-pss.c \
-	t-rsa-testparm.c t-secmem.c t-sexp.c t-x448.c testapi.c \
-	testdrv.c version.c
+	t-kem.c t-lock.c t-mlkem.c t-mpi-bit.c t-mpi-point.c \
+	t-rsa-15.c t-rsa-pss.c t-rsa-testparm.c t-secmem.c t-sexp.c \
+	t-x448.c testapi.c testdrv.c version.c
 DIST_SOURCES = aeswrap.c basic.c bench-slope.c benchmark.c curves.c \
 	dsa-rfc6979.c fips186-dsa.c fipsdrv.c gchash.c genhashdata.c \
 	hashtest.c hmac.c keygen.c keygrip.c mpitests.c pkbench.c \
 	pkcs1v2.c prime.c pubkey.c random.c rsacvt.c t-convert.c \
 	t-cv25519.c t-dsa.c t-ecdsa.c t-ed25519.c t-ed448.c t-kdf.c \
-	t-lock.c t-mpi-bit.c t-mpi-point.c t-rsa-15.c t-rsa-pss.c \
-	t-rsa-testparm.c t-secmem.c t-sexp.c t-x448.c testapi.c \
-	testdrv.c version.c
+	t-kem.c t-lock.c t-mlkem.c t-mpi-bit.c t-mpi-point.c \
+	t-rsa-15.c t-rsa-pss.c t-rsa-testparm.c t-secmem.c t-sexp.c \
+	t-x448.c testapi.c testdrv.c version.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -430,7 +440,8 @@ am__tty_colors = { \
 }
 am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(srcdir)/basic-disable-all-hwf.in $(srcdir)/hashtest-256g.in \
-	$(top_srcdir)/build-aux/depcomp README
+	$(srcdir)/hashtest-6g.in $(top_srcdir)/build-aux/depcomp \
+	README
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -531,9 +542,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PTH_CFLAGS = @PTH_CFLAGS@
-PTH_CONFIG = @PTH_CONFIG@
-PTH_LIBS = @PTH_LIBS@
 RANLIB = @RANLIB@
 RC = @RC@
 READELF = @READELF@
@@ -607,18 +615,19 @@ top_srcdir = @top_srcdir@
 # the driver is only used for cross-compiling.
 tests_bin = version t-secmem mpitests t-sexp t-convert t-mpi-bit \
 	t-mpi-point t-lock prime basic keygen pubkey hmac hashtest \
-	t-kdf keygrip aeswrap random $(am__append_1) $(am__append_2) \
-	$(am__append_3)
+	t-kdf keygrip aeswrap random t-kem t-mlkem $(am__append_1) \
+	$(am__append_2) $(am__append_3)
 tests_bin_last = benchmark bench-slope
 tests_sh = basic-disable-all-hwf
-tests_sh_last = hashtest-256g
+tests_sh_last = hashtest-6g hashtest-256g
 TESTS_ENVIRONMENT = GCRYPT_IN_REGRESSION_TEST=1
 
 # Need to include ../src in addition to top_srcdir because gcrypt.h is
 # a built header.
 AM_CPPFLAGS = -I../src -I$(top_srcdir)/src
 AM_CFLAGS = $(GPG_ERROR_CFLAGS)
-AM_LDFLAGS = -no-install
+@HAVE_W32_SYSTEM_FALSE@AM_LDFLAGS = -no-install
+@HAVE_W32_SYSTEM_TRUE@AM_LDFLAGS = -no-fast-install
 standard_ldadd = \
 	../src/libgcrypt.la \
         ../compat/libcompat.la
@@ -628,8 +637,9 @@ CLEANFILES = testdrv-build
 EXTRA_DIST = README rsa-16k.key \
 	     pkcs1v2-oaep.h pkcs1v2-pss.h pkcs1v2-v15c.h pkcs1v2-v15s.h \
 	     t-ed25519.inp t-ed448.inp t-dsa.inp t-ecdsa.inp t-rsa-15.inp \
-	     t-rsa-pss.inp stopwatch.h hashtest-256g.in sha3-224.h \
-	     sha3-256.h sha3-384.h sha3-512.h blake2b.h blake2s.h \
+	     t-rsa-pss.inp t-mlkem.inp \
+	     stopwatch.h hashtest-6g.in hashtest-256g.in \
+	     sha3-224.h sha3-256.h sha3-384.h sha3-512.h blake2b.h blake2s.h \
 	     basic-disable-all-hwf.in basic_all_hwfeature_combinations.sh
 
 LDADD = $(standard_ldadd) $(GPG_ERROR_LIBS) @LDADD_FOR_TESTS_KLUDGE@
@@ -684,6 +694,8 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+hashtest-6g: $(top_builddir)/config.status $(srcdir)/hashtest-6g.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 hashtest-256g: $(top_builddir)/config.status $(srcdir)/hashtest-256g.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 basic-disable-all-hwf: $(top_builddir)/config.status $(srcdir)/basic-disable-all-hwf.in
@@ -810,9 +822,17 @@ t-kdf$(EXEEXT): $(t_kdf_OBJECTS) $(t_kdf_DEPENDENCIES) $(EXTRA_t_kdf_DEPENDENCIE
 	@rm -f t-kdf$(EXEEXT)
 	$(AM_V_CCLD)$(t_kdf_LINK) $(t_kdf_OBJECTS) $(t_kdf_LDADD) $(LIBS)
 
+t-kem$(EXEEXT): $(t_kem_OBJECTS) $(t_kem_DEPENDENCIES) $(EXTRA_t_kem_DEPENDENCIES) 
+	@rm -f t-kem$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(t_kem_OBJECTS) $(t_kem_LDADD) $(LIBS)
+
 t-lock$(EXEEXT): $(t_lock_OBJECTS) $(t_lock_DEPENDENCIES) $(EXTRA_t_lock_DEPENDENCIES) 
 	@rm -f t-lock$(EXEEXT)
 	$(AM_V_CCLD)$(t_lock_LINK) $(t_lock_OBJECTS) $(t_lock_LDADD) $(LIBS)
+
+t-mlkem$(EXEEXT): $(t_mlkem_OBJECTS) $(t_mlkem_DEPENDENCIES) $(EXTRA_t_mlkem_DEPENDENCIES) 
+	@rm -f t-mlkem$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(t_mlkem_OBJECTS) $(t_mlkem_LDADD) $(LIBS)
 
 t-mpi-bit$(EXEEXT): $(t_mpi_bit_OBJECTS) $(t_mpi_bit_DEPENDENCIES) $(EXTRA_t_mpi_bit_DEPENDENCIES) 
 	@rm -f t-mpi-bit$(EXEEXT)
@@ -891,6 +911,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-ecdsa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-ed25519.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-ed448.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-kem.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mlkem.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mpi-bit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-mpi-point.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-rsa-15.Po@am__quote@ # am--include-marker
@@ -1212,6 +1234,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/t-ecdsa.Po
 	-rm -f ./$(DEPDIR)/t-ed25519.Po
 	-rm -f ./$(DEPDIR)/t-ed448.Po
+	-rm -f ./$(DEPDIR)/t-kem.Po
+	-rm -f ./$(DEPDIR)/t-mlkem.Po
 	-rm -f ./$(DEPDIR)/t-mpi-bit.Po
 	-rm -f ./$(DEPDIR)/t-mpi-point.Po
 	-rm -f ./$(DEPDIR)/t-rsa-15.Po
@@ -1297,6 +1321,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/t-ecdsa.Po
 	-rm -f ./$(DEPDIR)/t-ed25519.Po
 	-rm -f ./$(DEPDIR)/t-ed448.Po
+	-rm -f ./$(DEPDIR)/t-kem.Po
+	-rm -f ./$(DEPDIR)/t-mlkem.Po
 	-rm -f ./$(DEPDIR)/t-mpi-bit.Po
 	-rm -f ./$(DEPDIR)/t-mpi-point.Po
 	-rm -f ./$(DEPDIR)/t-rsa-15.Po
@@ -1349,7 +1375,8 @@ uninstall-am:
 
 # Force sequential run of some tests.
 bench-slope.log:    benchmark.log
-hashtest-256g.log:  bench-slope.log
+hashtest-6g.log:    bench-slope.log
+hashtest-256g.log:  hashtest-6g.log
 
 # Build a version of the test driver for the build platform.
 testdrv-build: testdrv.c
