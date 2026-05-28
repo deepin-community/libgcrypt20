@@ -29,7 +29,7 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
-# License along with this program; if not, see <http://www.gnu.org/licenses/>.
+# License along with this program; if not, see <https://www.gnu.org/licenses/>.
 # SPDX-License-Identifier: LGPL-2.1-or-later
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -111,8 +111,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cc_for_build.m4 \
 	$(top_srcdir)/m4/gpg-error.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/m4/noexecstack.m4 $(top_srcdir)/m4/socklen.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/noexecstack.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
@@ -329,9 +329,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PTH_CFLAGS = @PTH_CFLAGS@
-PTH_CONFIG = @PTH_CONFIG@
-PTH_LIBS = @PTH_LIBS@
 RANLIB = @RANLIB@
 RC = @RC@
 READELF = @READELF@
@@ -403,7 +400,7 @@ top_srcdir = @top_srcdir@
 # Location of the released tarball archives.  This is prefixed by
 # the variable RELEASE_ARCHIVE in ~/.gnupg-autogen.rc.  For example:
 # RELEASE_ARCHIVE=wk@somehost:archive/tarballs
-RELEASE_ARCHIVE_SUFFIX = libgcrypt/v1.10
+RELEASE_ARCHIVE_SUFFIX = libgcrypt/v1.11
 # The variable RELEASE_SIGNING_KEY in ~/.gnupg-autogen.rc is used
 # to specify the key for signing.  For example:
 # RELEASE_SIGNKEY=D8692123C4065DEA5E0F3AB5249B39D24F25E3B6
