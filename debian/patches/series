@@ -1,3 +1,4 @@
 12_lessdeps_libgcrypt-config.diff
 15_multiarchpath_in_-L.diff
 25_norevisionfromgit.diff
+CVE-2026-41989-Fix-decoding-a-point-on-Montgomery-curve.patch

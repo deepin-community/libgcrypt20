@@ -1,3 +1,10 @@
+libgcrypt20 (1.10.3-0deepin2) unstable; urgency=medium
+
+  * Fix CVE-2026-41989: fix decoding a point on Montgomery curve
+    (upstream commit 2d3d732c9bf87cc10729f69678dd9e6862f99fa3)
+
+ -- deepin-ci-robot <packages@deepin.org>  Thu, 04 Jun 2026 09:00:00 +0800
+
 libgcrypt20 (1.10.3-2deepin1) unstable; urgency=medium
 
   * feat: add sw support.
