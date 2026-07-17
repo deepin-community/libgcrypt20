@@ -22,6 +22,7 @@ override_dh_auto_configure:
 		--enable-ld-version-script --enable-static
 
 override_dh_auto_build-indep:
+ifneq (sw64, $(DEB_BUILD_ARCH))
 	# use current version in /usr/share/texmf/tex/texinfo/, see #803081
 	rm -f build-aux/texinfo.tex
 	cd build/doc && $(MAKE) stamp-vti
@@ -42,17 +43,21 @@ override_dh_auto_build-indep:
 	  || exit 1 ; \
 	  cd .. ; \
 	done
+endif
+	echo > debian/libgcrypt-mingw-w64-dev.install
 
 debian/tmp/usr/include/gcrypt.h:
 	dh_auto_install --verbose --builddirectory=build
 
 override_dh_auto_install-indep:	debian/tmp/usr/include/gcrypt.h
+ifneq (sw64, $(DEB_BUILD_ARCH))
 	for cpu in i686 x86_64; do \
 	  cd build-$$cpu-w64-mingw32 && \
 	  $(MAKE) install DESTDIR=$(shell pwd)/debian/tmp \
 	  || exit 1 ; \
 	  cd .. ; \
 	done
+endif
 	find debian/tmp -name libgcrypt.la -type f -delete
 
 override_dh_auto_install-arch:
